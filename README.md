@@ -69,11 +69,12 @@ We will look briefly at the following commands:
 1. `sort`
 2. `unique`
 3. `cut`
-4. `sed`
-5. `awk`
+4. `awk`
+5. `sed`
+6. `diff`
 
 We will also look more closely at:
-6. `grep`
+7. `grep`
 
 ### sort
 
@@ -128,3 +129,188 @@ The `<<` is a *here-doc* operator.  We won't cover it further here, but for this
 ```
 
 If you use numeric sort, anything that isn't a number is sorted lexically.
+
+*** uniq
+
+The `uniq` command reads from a stream a prints every line in the stream, unless it matches exactly the line right before it.  Consider this:
+
+```bash
+cat <<EOF | uniq
+An apple
+An apple
+an apple
+An apple
+123
+Flight 123
+1234
+1234
+1234
+123
+EOF
+```
+
+This would result in the following:
+
+```text
+An apple
+an apple
+An apple
+123
+Flight 123
+1234
+123
+```
+
+Notice that "An apple" and "123" are both printed twice, even though they aren't unique.  Recall that `uniq` skips a line if it exactly matches the line right before it.  How can you force `uniq` to skip all duplicates, whether or not they are next to each other?  The answer is: `sort`.  If you did this:
+
+```bash
+cat <<EOF | sort | uniq
+An apple
+An apple
+an apple
+An apple
+123
+Flight 123
+1234
+1234
+1234
+123
+EOF
+```
+
+the result is this:
+
+```text
+123
+1234
+An apple
+Flight 123
+an apple
+```
+
+Because `sort` placed lines together that are identical, and `uniq` suppresses duplicate lines: viola!  Only unique lines are printed.  This pattern is so common that `sort` has a flag which causes it to print only unique lines.  The command above (with `| sort | uniq`) has the same outcome as the following:
+
+```bash
+cat <<EOF | sort -u
+An apple
+An apple
+an apple
+An apple
+123
+Flight 123
+1234
+1234
+1234
+123
+EOF
+```
+
+However, sometimes it is useful to pipe `sort` to `uniq`.  A very common pattern involves counting the number of lines that match each other.  This can be done as follows:
+
+```bash
+cat <<EOF | sort | uniq -c
+10.10.10.1
+10.10.10.2
+10.10.10.1
+10.10.10.5
+10.10.10.7
+10.10.10.2
+10.10.10.11
+10.10.10.5
+10.10.10.1
+EOF
+```
+
+This yields:
+
+```text
+      3 10.10.10.1
+      1 10.10.10.11
+      2 10.10.10.2
+      2 10.10.10.5
+      1 10.10.10.7
+```
+
+Notice the `-c` floag to `uniq`.  It causes `uniq` to print the count of occurrences that match.  We still have to `sort` because `uniq` only counts as duplicates lines that are right after one another.
+
+### cut
+
+The `cut` command reads a stream and tries to break it up into a series of records with a common character used as a separator.  From there, specific columns can be printed.  By default, the tab character is the delimiter, but consider the following:
+
+```bash
+cat <<EOF | cut -f 1 -d ^
+NAME^OCCUPATION^CATCH PHRASE
+Abraham Lincoln^President^Four score and blah blah years ago
+Ben Franklin^Inventor, Diplomat^Fish and you start to smell after three days
+Thomas Edison^Patent Thief^Ouch! Electricity hurts
+EOF
+```
+
+This would produce:
+
+```text
+NAME
+Abraham Lincoln
+Ben Franklin
+Thomas Edison
+```
+
+In other words, if you treat those lines as a series of records using a carat (^) as the delimiter between record fields, it extracts and prints the first field of each record. But you aren't constrained to just print the first field.  If you did this:
+
+```bash
+cat <<EOF | cut -f 1,3 -d ^
+NAME^OCCUPATION^CATCH PHRASE
+Abraham Lincoln^President^Four score and blah blah years ago
+Ben Franklin^Inventor, Diplomat^Fish and you start to smell after three days
+Thomas Edison^Patent Thief^Ouch! Electricity hurts
+EOF
+```
+
+the result would be:
+
+```text
+NAME^CATCH PHRASE
+Abraham Lincoln^Four score and blah blah years ago
+Ben Franklin^Fish and you start to smell after three days
+Thomas Edison^Ouch! Electricity hurts
+```
+
+Now consider the following:
+
+```bash
+cat <<EOF
+10.10.10.1:80
+10.10.10.2:443
+10.10.10.1:443
+10.10.10.5:8080
+10.10.10.2:8080
+10.10.10.6:443
+10.10.10.5:2123
+10.10.10.1:2123
+EOF
+```
+
+How could you print a count of the occurences of just the IP addresses?  Here's a way:
+
+```bash
+cat <<EOF | cut -f 1 -d : | sort | uniq -c
+10.10.10.1:80
+10.10.10.2:443
+10.10.10.1:443
+10.10.10.5:8080
+10.10.10.2:8080
+10.10.10.6:443
+10.10.10.5:2123
+10.10.10.1:2123
+EOF
+```
+
+This would yield:
+
+```text
+      3 10.10.10.1
+      2 10.10.10.2
+      2 10.10.10.5
+      1 10.10.10.6
+```
+
