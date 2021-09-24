@@ -1,0 +1,5 @@
+NAME^OCCUPATION^CATCH PHRASE
+Abraham Lincoln^President^Four score and blah blah years ago
+Ben Franklin^Inventor, Diplomat^Fish and you start to smell after 3 days
+Thomas Edison^Technologist, Thief^Ouch! Electricity hurts!
+Issac Newton^Apple farmer, mathmetician^Gravity, y'all

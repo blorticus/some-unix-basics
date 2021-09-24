@@ -1,0 +1,14 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+my @incoming;
+while (<STDIN>) {
+    chomp;
+    push @incoming, $_;
+}
+
+print STDERR "Error!  Error!  Warning!!\n";
+print STDOUT "You said: " . join( "\n", @incoming ) . "\n";
+print STDERR "But you shouldn't have!!!\n";

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# some useful comment
+
+# then some other useful comment
+# after which, there is formatting whitespace
+
+func ls() {
+    ls "$1"
+}
+
+
+# after that, something else
+
+ls "$1"
